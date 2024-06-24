@@ -36,7 +36,7 @@ class MainDesktop extends StatelessWidget {
                 height: 15,
               ),
 
-              //contacy btn
+              //contact btn
               SizedBox(
                 width: 250,
                 child: ElevatedButton(

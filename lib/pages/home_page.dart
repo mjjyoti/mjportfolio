@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:mjportfolio/constants/color.dart';
 import 'package:mjportfolio/constants/size.dart';
 import 'package:mjportfolio/utils/project_utils.dart';
+import 'package:mjportfolio/widgets/contact_section.dart';
+import 'package:mjportfolio/widgets/custom_text_field.dart';
 import 'package:mjportfolio/widgets/drawer_mobile.dart';
+import 'package:mjportfolio/widgets/footer.dart';
 import 'package:mjportfolio/widgets/header_desktop.dart';
 import 'package:mjportfolio/widgets/header_mobile.dart';
 import 'package:mjportfolio/widgets/main_desktop.dart';
 import 'package:mjportfolio/widgets/main_mobile.dart';
+import 'package:mjportfolio/widgets/project_section.dart';
 import 'package:mjportfolio/widgets/skills_desktop.dart';
 import 'package:mjportfolio/widgets/skills_mobile.dart';
 
@@ -21,6 +25,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final scrollController = ScrollController();
+  final List<GlobalKey> navbarKeys = List.generate(4, (index) => GlobalKey());
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -32,105 +39,96 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: CustomColor.scaffolfBg,
         endDrawer: constraints.maxWidth >= kMinDesktopWidth
             ? null
-            : const DrawerMobile(),
-        body: ListView(
-          scrollDirection: Axis.vertical,
-          children: [
-            //HEADER
-            if (constraints.maxWidth >= kMinDesktopWidth)
-              const HeaderDesktop()
-            else
-              HeaderMobile(
-                onLogoTap: () {},
-                onMenuTap: () {
-                  scaffoldKey.currentState?.openEndDrawer();
+            : DrawerMobile(
+                onNavItemTap: (int navIndex) {
+                  scaffoldKey.currentState?.closeEndDrawer();
+                  scrollToSection(navIndex);
                 },
               ),
-            //MAIN
-            if (constraints.maxWidth >= kMinDesktopWidth)
-              const MainDesktop()
-            else
-              const MainMobile(),
-            //SKILLS
-            Container(
-              color: CustomColor.bgLight1,
-              width: screenWidth,
-              padding: const EdgeInsets.fromLTRB(25, 20, 25, 60),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  //title
-                  const Text(
-                    "What I can do",
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: CustomColor.whitePrimary),
-                  ),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  //platform and skills
-                  if (constraints.maxWidth >= kMedDesktopWidth)
-                    const SkillsDesktop()
-                  else
-                    const SkillsMobile(),
-                ],
+        body: SingleChildScrollView(
+          controller: scrollController,
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              SizedBox(
+                key: navbarKeys.first,
               ),
-            ),
-
-            //PROJECTS
-            Container(
-              color: CustomColor.bgLight1,
-              width: screenWidth,
-              padding: const EdgeInsets.fromLTRB(25, 20, 25, 60),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  //title
-                  const Text(
-                    "Work Projects",
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: CustomColor.whitePrimary),
-                  ),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 800),
-                    child: Wrap(
-                      runSpacing: 25,
-                      spacing: 25,
-                      children: [
-                        for (int i = 0; i < workProjectUtils.length; i++)
-                          ProjectCardWidget(
-                              screenWidth: screenWidth,
-                              project: workProjectUtils[i])
-                      ],
+              //HEADER
+              if (constraints.maxWidth >= kMinDesktopWidth)
+                HeaderDesktop(
+                  onNavMenuTap: (int navIndex) {
+                    scrollToSection(navIndex);
+                  },
+                )
+              else
+                HeaderMobile(
+                  onLogoTap: () {},
+                  onMenuTap: () {
+                    scaffoldKey.currentState?.openEndDrawer();
+                  },
+                ),
+              //MAIN
+              if (constraints.maxWidth >= kMinDesktopWidth)
+                const MainDesktop()
+              else
+                const MainMobile(),
+              //SKILLS
+              Container(
+                key: navbarKeys[1],
+                color: CustomColor.bgLight1,
+                width: screenWidth,
+                padding: const EdgeInsets.fromLTRB(25, 20, 25, 60),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    //title
+                    const Text(
+                      "What I can do",
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: CustomColor.whitePrimary),
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    //platform and skills
+                    if (constraints.maxWidth >= kMedDesktopWidth)
+                      const SkillsDesktop()
+                    else
+                      const SkillsMobile(),
+                  ],
+                ),
               ),
-            ),
 
-            //CONTACTS
-            Container(
-              height: 500,
-              width: double.maxFinite,
-              color: Colors.blueGrey,
-            ),
+              //PROJECTS
+              ProjectSection(
+                key: navbarKeys[2],
+              ),
 
-            //FOOTER
-            Container(
-              height: 500,
-              width: double.maxFinite,
-              color: Colors.blueGrey,
-            )
-          ],
+              //CONTACTS
+              ContactSection(
+                key: navbarKeys[3],
+              ),
+              //FOOTER
+              Footer(),
+            ],
+          ),
         ),
       );
     });
+  }
+
+  void scrollToSection(int navIndex) {
+    if (navIndex == 4) {
+      return;
+    }
+
+    final key = navbarKeys[navIndex];
+    Scrollable.ensureVisible(
+      key.currentContext!,
+      duration: Duration(microseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 }
